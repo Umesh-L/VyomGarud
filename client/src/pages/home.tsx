@@ -110,11 +110,13 @@ export default function Home() {
     {
       icon: Zap,
       title: "Rapid Deployment",
+      stat: "<5min",
       description: "Field-ready in under 5 minutes with autonomous takeoff and landing capabilities"
     },
     {
       icon: Shield,
       title: "Military-Grade Reliability",
+      stat: "24/7",
       description: "Built to MIL-STD specifications with redundant systems and all-weather operation"
     }
   ];

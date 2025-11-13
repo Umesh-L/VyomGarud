@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { motion, useScroll, useTransform, useSpring, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,8 +26,50 @@ import {
 } from "lucide-react";
 import heroImage from "@assets/generated_images/Military_UAV_drone_hero_7255cab5.png";
 
+function AnimatedCounter({ end, suffix = "", duration = 2 }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
+  useEffect(() => {
+    if (!isInView) return;
+
+    const isDecimal = end.toString().includes(".");
+    const numericEnd = parseFloat(end);
+    const increment = numericEnd / (duration * 60);
+    let current = 0;
+
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= numericEnd) {
+        setCount(numericEnd);
+        clearInterval(timer);
+      } else {
+        setCount(current);
+      }
+    }, 1000 / 60);
+
+    return () => clearInterval(timer);
+  }, [end, duration, isInView]);
+
+  return (
+    <span ref={ref}>
+      {end.toString().includes(".") 
+        ? count.toFixed(1)
+        : Math.floor(count)}
+      {suffix}
+    </span>
+  );
+}
+
 export default function Home() {
   const { toast } = useToast();
+  const { scrollYProgress } = useScroll();
+  const scaleProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
 
   const form = useForm({
     resolver: zodResolver(insertContactSchema),
@@ -121,18 +164,38 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      {/* Scroll Progress Indicator */}
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-1 bg-primary z-50 origin-left"
+        style={{ scaleX: scaleProgress }}
+      />
+
+      {/* Animated Grid Background */}
+      <div className="fixed inset-0 z-0 opacity-20 pointer-events-none">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `linear-gradient(to right, hsl(var(--primary) / 0.1) 1px, transparent 1px),
+                           linear-gradient(to bottom, hsl(var(--primary) / 0.1) 1px, transparent 1px)`,
+          backgroundSize: '4rem 4rem'
+        }} />
+      </div>
+
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Hero Background Image with Overlay */}
-        <div className="absolute inset-0 z-0">
+        {/* Hero Background Image with Overlay and Parallax */}
+        <motion.div 
+          className="absolute inset-0 z-0"
+          style={{
+            y: useTransform(scrollYProgress, [0, 1], [0, 300])
+          }}
+        >
           <img 
             src={heroImage} 
             alt="VyomGarud UAV System" 
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/85 to-background" />
-        </div>
+        </motion.div>
 
         {/* Hero Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-32 text-center">
@@ -141,13 +204,30 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 
+            <motion.h1 
               className="text-6xl md:text-8xl font-bold tracking-tight mb-6"
               data-testid="heading-hero-title"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.2 }}
             >
-              <span className="text-foreground">VYOM</span>
-              <span className="text-primary">GARUD</span>
-            </h1>
+              <motion.span 
+                className="inline-block text-foreground"
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+              >
+                VYOM
+              </motion.span>
+              <motion.span 
+                className="inline-block text-primary ml-4"
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+              >
+                GARUD
+              </motion.span>
+            </motion.h1>
             
             <motion.p 
               className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto font-light tracking-wide"
@@ -198,7 +278,7 @@ export default function Home() {
       </section>
 
       {/* About Section */}
-      <section className="py-24 md:py-32 px-6">
+      <section className="py-24 md:py-32 px-6 relative">
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial="initial"
@@ -206,10 +286,19 @@ export default function Home() {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-8 text-center">
-              <span className="text-foreground">Our </span>
-              <span className="text-primary">Mission</span>
-            </h2>
+            <div className="relative mb-8">
+              <h2 className="text-4xl md:text-5xl font-bold text-center">
+                <span className="text-foreground">Our </span>
+                <span className="text-primary">Mission</span>
+              </h2>
+              <motion.div
+                className="h-1 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mt-4"
+                initial={{ width: 0 }}
+                whileInView={{ width: "200px" }}
+                transition={{ duration: 1, delay: 0.5 }}
+                viewport={{ once: true }}
+              />
+            </div>
             
             <div className="space-y-6 text-lg leading-relaxed text-muted-foreground">
               <p>
@@ -224,28 +313,29 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Stats Grid */}
+            {/* Stats Grid with Animated Counters */}
             <motion.div 
               className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16"
               variants={staggerContainer}
             >
               {[
-                { value: "10+", label: "Years of Excellence" },
-                { value: "50K+", label: "Flight Hours" },
-                { value: "99.9%", label: "Uptime Reliability" },
-                { value: "24/7", label: "Support Available" }
+                { value: 10, suffix: "+", label: "Years of Excellence" },
+                { value: 50, suffix: "K+", label: "Flight Hours" },
+                { value: 99.9, suffix: "%", label: "Uptime Reliability" },
+                { value: 24, suffix: "/7", label: "Support Available" }
               ].map((stat, index) => (
                 <motion.div 
                   key={index} 
-                  className="text-center"
+                  className="text-center group"
                   variants={fadeInUp}
+                  whileHover={{ scale: 1.05 }}
                   data-testid={`stat-${index}`}
                 >
                   <div 
-                    className="text-3xl md:text-4xl font-bold text-primary mb-2"
+                    className="text-3xl md:text-4xl font-bold text-primary mb-2 transition-all duration-300 group-hover:text-primary/80"
                     data-testid={`stat-value-${index}`}
                   >
-                    {stat.value}
+                    <AnimatedCounter end={stat.value} suffix={stat.suffix} duration={2.5} />
                   </div>
                   <div 
                     className="text-sm text-muted-foreground uppercase tracking-wider"
@@ -270,10 +360,19 @@ export default function Home() {
             variants={fadeInUp}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              <span className="text-foreground">Core </span>
-              <span className="text-primary">Capabilities</span>
-            </h2>
+            <div className="relative mb-4">
+              <h2 className="text-4xl md:text-5xl font-bold">
+                <span className="text-foreground">Core </span>
+                <span className="text-primary">Capabilities</span>
+              </h2>
+              <motion.div
+                className="h-1 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mt-4"
+                initial={{ width: 0 }}
+                whileInView={{ width: "200px" }}
+                transition={{ duration: 1, delay: 0.5 }}
+                viewport={{ once: true }}
+              />
+            </div>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Advanced systems engineered for mission-critical performance
             </p>
@@ -287,15 +386,29 @@ export default function Home() {
             viewport={{ once: true }}
           >
             {capabilities.map((capability, index) => (
-              <motion.div key={index} variants={fadeInUp}>
+              <motion.div 
+                key={index} 
+                variants={fadeInUp}
+                whileHover={{ 
+                  scale: 1.05,
+                  rotateY: 5,
+                  rotateX: 5,
+                  transition: { duration: 0.3 }
+                }}
+                style={{ transformStyle: "preserve-3d" }}
+              >
                 <Card 
-                  className="h-full hover-elevate active-elevate-2 transition-all duration-300 border-card-border"
+                  className="h-full hover-elevate active-elevate-2 transition-all duration-300 border-card-border group overflow-visible"
                   data-testid={`card-capability-${index}`}
                 >
                   <CardHeader>
-                    <div className="w-12 h-12 rounded-md bg-primary/10 flex items-center justify-center mb-4">
+                    <motion.div 
+                      className="w-12 h-12 rounded-md bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors duration-300"
+                      whileHover={{ rotate: 360 }}
+                      transition={{ duration: 0.6 }}
+                    >
                       <capability.icon className="w-6 h-6 text-primary" />
-                    </div>
+                    </motion.div>
                     <CardTitle className="text-xl">{capability.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -320,10 +433,19 @@ export default function Home() {
             variants={fadeInUp}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              <span className="text-foreground">Why </span>
-              <span className="text-primary">VyomGarud</span>
-            </h2>
+            <div className="relative">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                <span className="text-foreground">Why </span>
+                <span className="text-primary">VyomGarud</span>
+              </h2>
+              <motion.div
+                className="h-1 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mt-4"
+                initial={{ width: 0 }}
+                whileInView={{ width: "200px" }}
+                transition={{ duration: 1, delay: 0.5 }}
+                viewport={{ once: true }}
+              />
+            </div>
           </motion.div>
 
           <motion.div 
@@ -338,11 +460,23 @@ export default function Home() {
                 key={index} 
                 className="text-center"
                 variants={fadeInUp}
+                whileHover={{ y: -10 }}
                 data-testid={`highlight-${index}`}
               >
-                <div className="w-16 h-16 rounded-md bg-primary/10 flex items-center justify-center mx-auto mb-6">
+                <motion.div 
+                  className="w-16 h-16 rounded-md bg-primary/10 flex items-center justify-center mx-auto mb-6"
+                  animate={{ 
+                    y: [0, -10, 0],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    delay: index * 0.2
+                  }}
+                >
                   <highlight.icon className="w-8 h-8 text-primary" />
-                </div>
+                </motion.div>
                 <h3 
                   className="text-2xl font-semibold mb-3"
                   data-testid={`highlight-title-${index}`}
@@ -350,12 +484,16 @@ export default function Home() {
                   {highlight.title}
                 </h3>
                 {highlight.stat && (
-                  <div 
+                  <motion.div 
                     className="text-4xl font-bold text-primary mb-3"
                     data-testid={`highlight-stat-${index}`}
+                    initial={{ scale: 0 }}
+                    whileInView={{ scale: 1 }}
+                    transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+                    viewport={{ once: true }}
                   >
                     {highlight.stat}
-                  </div>
+                  </motion.div>
                 )}
                 <p 
                   className="text-muted-foreground leading-relaxed"

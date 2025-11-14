@@ -1,3 +1,154 @@
+# VyomGarud UI Design Guidelines
+
+This document describes the visual system and component guidelines for the VyomGarud project. It is written in plain language and maps directly to the codebase (Tailwind CSS, Radix UI, and the project's `client/src/components/ui` components). Follow these rules to keep the product consistent, accessible, and easy to maintain.
+
+## Core Principles
+
+- Military precision: geometric grids, clear alignment, and predictable spacing.
+- Clear hierarchy: obvious visual order for headlines, sections and CTAs.
+- Functional restraint: avoid decorative noise; prioritize clarity and purpose.
+- Accessibility-first: semantic markup, visible focus states, and sufficient contrast.
+
+## Where to edit tokens
+
+- Change global colors, spacing and radius in `tailwind.config.js` so updates apply everywhere.
+- Use component variants (CVA) or utility helpers instead of repeating classes across files.
+
+## Color, Dark Mode and Tokens
+
+- Default theme: dark-first (design optimized for dark surfaces). Provide a light theme as an alternative.
+- Primary color (accent): hsl(25 100% 50%) — use for primary CTAs and key accents.
+- Accent states: hover (≈10% darker), active (≈15% darker), disabled (opacity 60%).
+- Neutral scale: use a broad grayscale for surfaces and text; prefer `neutral-900` for dark surfaces.
+- Use CSS custom properties (where helpful) and map them to Tailwind tokens.
+
+Example tokens (in `tailwind.config.js`):
+
+```js
+// colors
+--color-primary: 'hsl(25 100% 50%)'
+// spacing scale uses Tailwind's default spacing: 4, 8, 12, 16, 20, 24
+```
+
+## Typography
+
+- Font stack: `Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial`.
+- Scale guidelines (use Tailwind `text-` classes):
+  - Hero / h1: large (desktop 48–64px range)
+  - h2: 32–40px
+  - h3: 24–28px
+  - Body: 16px base; 18px for long-form content
+  - Line-height: 1.4–1.6 for body text
+
+Prefer utility classes (`text-xl`, `text-2xl`) and avoid hard-coded pixel values inside components.
+
+## Spacing & Layout
+
+- Use Tailwind spacing scale consistently: 4, 8, 12, 16, 20, 24.
+- Page container: `max-w-7xl` with horizontal `px-6` or `px-8`.
+- Content width for text-heavy areas: `max-w-4xl`.
+- Sections: use symmetric vertical padding (for example `py-20` desktop, `py-12` mobile).
+
+## Component Patterns
+
+The repository uses Radix primitives and shadcn-style components. Reuse components in `client/src/components/ui` and follow these simple rules:
+
+- Buttons
+  - `.btn-primary`: primary CTAs (primary background, white text, clear focus state).
+  - `.btn-secondary`: secondary actions (neutral background).
+  - Include `:focus-visible` styles for keyboard users.
+
+- Cards
+  - Use `rounded-md`, `shadow-sm`, and a simple surface color like `bg-neutral-900` (dark) or `bg-white` (light).
+  - Internal padding: `p-6` for comfortable density, `p-4` for denser lists.
+
+- Forms
+  - Inputs: `bg-neutral-800`, `text-white`, `rounded-md`, `px-3 py-2`.
+  - Focus: `focus-visible:ring-2 focus-visible:ring-primary/60`.
+  - Errors: use `text-red-400` with `aria-invalid="true"` and an inline message element.
+
+- Modals & Drawers
+  - Use Radix Dialog/Drawer; mobile should use full-screen pattern, desktop centered card.
+  - Backdrop: `backdrop-blur-sm` with a semi-opaque overlay color.
+
+- Toasts
+  - Compact, dismissible, slide-in from top-right; use icons from `lucide-react`.
+
+## Accessibility
+
+- Use semantic HTML and landmarks (`header`, `main`, `footer`, `nav`).
+- Ensure all interactive controls are keyboard operable and have visible focus styles.
+- Test color contrast for both dark and light themes (WCAG AA minimum for body text).
+- Honor `prefers-reduced-motion` and keep animations subtle.
+
+## Motion & Animation
+
+- Keep motion subtle and purposeful: fade/slide/scale with 150–300ms durations.
+- Use `framer-motion` for coordinated transitions and check `prefers-reduced-motion`.
+- Avoid heavy layout-shifting animations that affect readability.
+
+## Images & Assets
+
+- Place production images in `attached_assets/` or `client/public` and reference them from the client code.
+- Hero images: dark, technical photography or high-contrast drone imagery.
+- Use SVGs for icons (line-style sets like Lucide work well with this aesthetic).
+
+## Responsive Guidelines
+
+- Mobile-first approach: build components for the smallest breakpoint first and expand up.
+- Breakpoints: follow Tailwind defaults `sm`, `md`, `lg`, `xl` and test each.
+- Navigation collapses to a hamburger menu on `sm` with an accessible off-canvas drawer.
+
+## Examples & Code Snippets (copyable)
+
+Button example (JSX):
+
+```jsx
+<button className="btn-primary px-6 py-3 rounded-md">Request Demo</button>
+```
+
+Card example (JSX):
+
+```jsx
+<article className="bg-neutral-900 rounded-md shadow-sm p-6">
+  <h3 className="text-xl font-semibold">Payload Integration</h3>
+  <p className="mt-3 text-sm leading-relaxed">Modular payloads for varied missions.</p>
+</article>
+```
+
+Form input example (JSX):
+
+```jsx
+<label className="block">
+  <span className="text-sm">Email</span>
+  <input type="email" className="mt-1 block w-full rounded-md bg-neutral-800 px-3 py-2 text-white focus-visible:ring-2 focus-visible:ring-primary/60" />
+</label>
+```
+
+## Developer Hints
+
+- Prefer updating tokens in `tailwind.config.js` rather than changing repeated classes throughout components.
+- Use `cva` (class-variance-authority) for component variants and `tailwind-merge` to combine conditional classnames.
+- Keep components small and focused; prefer composition over custom layout logic.
+
+## Design Review Checklist
+
+- Visual hierarchy: headings and CTAs are clearly ordered.
+- Spacing: consistent use of the spacing scale across sections.
+- Accessibility: keyboard navigable and color contrast verified.
+- Motion: reduced motion honoured for those who prefer it.
+
+## Contributing
+
+When adding tokens or patterns:
+
+1. Add tokens to `tailwind.config.js` and document them here.
+2. Add a sample component to `client/src/components/ui` and show a short usage example.
+3. Run the dev server and verify both dark and light themes.
+
+---
+
+These guidelines keep the UI consistent, accessible, and aligned with the project's military-precision aesthetic. When in doubt, prefer clarity and function.
 # VyomGarud UAV Systems - Design Guidelines
 
 ## Design Approach

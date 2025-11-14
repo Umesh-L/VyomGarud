@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "client/dist" }
+    }
+  ],
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://vyomgarud-qzsc.onrender.com/api/$1" }
+  ]
+}
